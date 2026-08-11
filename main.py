@@ -18,7 +18,10 @@ def display_menu():
     print("2. View Expenses")
     print("3. Edit Expense")
     print("4. Delete Expense")
-    print("5. Exit")
+    print("5. Search Expenses")
+    print("6. Filter Expenses")
+    print("7. Reports")
+    print("8. Exit")
     print("=" * 40)
 
 
@@ -71,17 +74,13 @@ def select_category():
             print("Please enter a number.")
 
 
-def view_expenses():
-    print("\n--- Expenses ---")
-
-    expenses = service.get_all_expenses()
-
+def display_expenses(expenses):
     if not expenses:
-        print("No expenses found.")
+        print("\nNo expenses found.")
         return
 
     print(
-        f"{'ID':<5}"
+        f"\n{'ID':<5}"
         f"{'Amount':<15}"
         f"{'Category':<15}"
         f"{'Description':<20}"
@@ -98,6 +97,97 @@ def view_expenses():
             f"{expense.description:<20}"
             f"{expense.date.strftime('%Y-%m-%d %H:%M'):<20}"
         )
+
+
+def view_expenses():
+    print("\n--- Expenses ---")
+    display_expenses(service.get_all_expenses())
+
+
+def search_expenses():
+    print("\n--- Search Expenses ---")
+
+    keyword = input("Search: ").strip()
+
+    if not keyword:
+        print("Search cannot be empty.")
+        return
+
+    results = service.search_expenses(keyword)
+
+    display_expenses(results)
+
+
+def filter_expenses():
+    print("\n--- Filter Expenses ---")
+    print("1. By Category")
+    print("2. By Amount")
+
+    choice = input("Choose: ").strip()
+
+    if choice == "1":
+        category = select_category()
+        results = service.filter_by_category(category)
+        display_expenses(results)
+
+    elif choice == "2":
+        try:
+            minimum = validate_amount(
+                input("Minimum amount: Rs. ")
+            )
+
+            maximum = validate_amount(
+                input("Maximum amount: Rs. ")
+            )
+
+            if minimum > maximum:
+                print("Minimum cannot exceed maximum.")
+                return
+
+            results = service.filter_by_amount(
+                minimum,
+                maximum
+            )
+
+            display_expenses(results)
+
+        except ValueError as error:
+            print(f"Error: {error}")
+
+    else:
+        print("Invalid option.")
+
+
+def show_reports():
+    print("\n--- Expense Reports ---")
+
+    report = service.get_reports()
+
+    if report["count"] == 0:
+        print("No expenses available.")
+        return
+
+    print(f"\nTotal Expenses:   Rs. {report['total']:,.2f}")
+    print(f"Number of Expenses: {report['count']}")
+    print(f"Average Expense:  Rs. {report['average']:,.2f}")
+
+    highest = report["highest"]
+    lowest = report["lowest"]
+
+    print(
+        f"\nHighest Expense:  Rs. {highest.amount:,.2f}"
+        f" ({highest.description})"
+    )
+
+    print(
+        f"Lowest Expense:   Rs. {lowest.amount:,.2f}"
+        f" ({lowest.description})"
+    )
+
+    print("\n--- Category Breakdown ---")
+
+    for category, amount in report["categories"].items():
+        print(f"{category:<20} Rs. {amount:,.2f}")
 
 
 def edit_expense():
@@ -214,11 +304,20 @@ def main():
             delete_expense()
 
         elif choice == "5":
+            search_expenses()
+
+        elif choice == "6":
+            filter_expenses()
+
+        elif choice == "7":
+            show_reports()
+
+        elif choice == "8":
             print("\nThank you for using Expense Tracker.")
             break
 
         else:
-            print("\nInvalid option. Please choose 1-5.")
+            print("\nInvalid option.")
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 from models import Expense
 
@@ -75,3 +76,65 @@ class ExpenseService:
         expense.description = description
 
         return True
+
+    def search_expenses(self, keyword: str) -> list[Expense]:
+        keyword = keyword.lower().strip()
+
+        return [
+            expense
+            for expense in self.expenses
+            if keyword in expense.description.lower()
+            or keyword in expense.category.lower()
+        ]
+
+    def filter_by_category(self, category: str) -> list[Expense]:
+        return [
+            expense
+            for expense in self.expenses
+            if expense.category.lower() == category.lower()
+        ]
+
+    def filter_by_amount(
+        self,
+        minimum: float,
+        maximum: float
+    ) -> list[Expense]:
+
+        return [
+            expense
+            for expense in self.expenses
+            if minimum <= expense.amount <= maximum
+        ]
+
+    def get_reports(self) -> dict:
+        if not self.expenses:
+            return {
+                "total": 0,
+                "count": 0,
+                "average": 0,
+                "highest": None,
+                "lowest": None,
+                "categories": {}
+            }
+
+        total = sum(expense.amount for expense in self.expenses)
+
+        category_totals = defaultdict(float)
+
+        for expense in self.expenses:
+            category_totals[expense.category] += expense.amount
+
+        return {
+            "total": total,
+            "count": len(self.expenses),
+            "average": total / len(self.expenses),
+            "highest": max(
+                self.expenses,
+                key=lambda expense: expense.amount
+            ),
+            "lowest": min(
+                self.expenses,
+                key=lambda expense: expense.amount
+            ),
+            "categories": dict(category_totals)
+        }
