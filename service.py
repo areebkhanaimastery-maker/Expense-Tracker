@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 from models import Expense
+from storage import load_expenses, save_expenses
 
 CATEGORIES = [
     "Food",
@@ -16,8 +17,14 @@ CATEGORIES = [
 class ExpenseService:
 
     def __init__(self):
-        self.expenses: list[Expense] = []
-        self.next_id = 1
+        self.expenses = load_expenses()
+
+        if self.expenses:
+            self.next_id = max(
+                expense.id for expense in self.expenses
+            ) + 1
+        else:
+            self.next_id = 1
 
     def add_expense(
         self,
@@ -36,6 +43,7 @@ class ExpenseService:
 
         self.expenses.append(expense)
         self.next_id += 1
+        save_expenses(self.expenses)
 
         return expense
 
@@ -56,6 +64,7 @@ class ExpenseService:
             return False
 
         self.expenses.remove(expense)
+        save_expenses(self.expenses)
         return True
 
     def edit_expense(
@@ -75,6 +84,7 @@ class ExpenseService:
         expense.category = category
         expense.description = description
 
+        save_expenses(self.expenses)
         return True
 
     def search_expenses(self, keyword: str) -> list[Expense]:
