@@ -1,3 +1,4 @@
+from service import CATEGORIES
 from service import ExpenseService
 from validators import (
     validate_amount,
@@ -21,6 +22,7 @@ def display_menu():
     print("=" * 40)
 
 
+
 def add_expense():
     print("\n--- Add Expense ---")
 
@@ -29,10 +31,7 @@ def add_expense():
             input("Amount: Rs. ")
         )
 
-        category = validate_text(
-            input("Category: "),
-            "Category"
-        )
+        category = select_category()
 
         description = validate_text(
             input("Description: "),
@@ -50,6 +49,26 @@ def add_expense():
 
     except ValueError as error:
         print(f"\nError: {error}")
+
+def select_category():
+    print("\nSelect Category:")
+
+    for index, category in enumerate(CATEGORIES, start=1):
+        print(f"{index}. {category}")
+
+    while True:
+        choice = input("Category: ").strip()
+
+        try:
+            choice = int(choice)
+
+            if 1 <= choice <= len(CATEGORIES):
+                return CATEGORIES[choice - 1]
+
+            print("Please select a valid category.")
+
+        except ValueError:
+            print("Please enter a number.")
 
 
 def view_expenses():

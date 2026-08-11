@@ -1,6 +1,16 @@
 from datetime import datetime
 from models import Expense
 
+CATEGORIES = [
+    "Food",
+    "Transport",
+    "Shopping",
+    "Bills",
+    "Entertainment",
+    "Health",
+    "Education",
+    "Other"
+]
 
 class ExpenseService:
 
