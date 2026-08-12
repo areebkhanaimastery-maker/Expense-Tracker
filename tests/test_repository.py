@@ -1,7 +1,9 @@
+import pytest
 from datetime import datetime
 
 from models import Expense
 from repository import ExpenseRepository
+from app.exceptions import DatabaseError
 
 
 def test_add_and_get_expense(tmp_path):
@@ -73,3 +75,11 @@ def test_update_expense(tmp_path):
 
     assert updated.amount == 1500
     assert updated.description == "Dinner"
+
+
+def test_database_error_handling(tmp_path):
+    # Attempting to open a directory as a database triggers an sqlite3 OperationalError
+    invalid_db_path = tmp_path
+    
+    with pytest.raises(DatabaseError):
+        ExpenseRepository(str(invalid_db_path))

@@ -1,3 +1,7 @@
+import logging
+from app.config import settings
+from app.logging_config import configure_logging
+from app.exceptions import ExpenseTrackerError
 from services import CATEGORIES
 from services import ExpenseService
 from validators import (
@@ -6,6 +10,8 @@ from validators import (
     validate_id
 )
 
+configure_logging(settings.log_level)
+logger = logging.getLogger(__name__)
 
 service = ExpenseService()
 
@@ -47,10 +53,12 @@ def add_expense():
             description
         )
 
+        logger.info("Expense created: id=%s", expense.id)
         print("\nExpense added successfully!")
         print(f"Expense ID: {expense.id}")
 
-    except ValueError as error:
+    except ExpenseTrackerError as error:
+        logger.error("Error adding expense: %s", error)
         print(f"\nError: {error}")
 
 def select_category():
@@ -151,7 +159,8 @@ def filter_expenses():
 
             display_expenses(results)
 
-        except ValueError as error:
+        except ExpenseTrackerError as error:
+            logger.error("Error filtering expenses: %s", error)
             print(f"Error: {error}")
 
     else:
@@ -243,9 +252,11 @@ def edit_expense():
             description
         )
 
+        logger.info("Expense updated: id=%s", expense_id)
         print("\nExpense updated successfully!")
 
-    except ValueError as error:
+    except ExpenseTrackerError as error:
+        logger.error("Error editing expense: %s", error)
         print(f"\nError: {error}")
 
 
@@ -276,16 +287,19 @@ def delete_expense():
 
         if confirmation == "y":
             service.delete_expense(expense_id)
+            logger.info("Expense deleted: id=%s", expense_id)
             print("Expense deleted successfully!")
 
         else:
             print("Deletion cancelled.")
 
-    except ValueError as error:
+    except ExpenseTrackerError as error:
+        logger.error("Error deleting expense: %s", error)
         print(f"\nError: {error}")
 
 
 def main():
+    logger.info("Expense application started")
     while True:
         display_menu()
 
@@ -314,6 +328,7 @@ def main():
 
         elif choice == "8":
             print("\nThank you for using Expense Tracker.")
+            logger.info("Expense application stopped")
             break
 
         else:
