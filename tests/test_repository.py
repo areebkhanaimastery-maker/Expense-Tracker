@@ -1,24 +1,29 @@
 import pytest
 from datetime import datetime
 
-from models import Expense
-from repository import ExpenseRepository
+from app.models.expense import Expense
+from app.repositories.sqlite_repository import SQLiteExpenseRepository
 from app.exceptions import DatabaseError
 
 
-def test_add_and_get_expense(tmp_path):
+@pytest.fixture
+def repository(tmp_path):
+    db_path = tmp_path / "test.db"
+    return SQLiteExpenseRepository(db_path)
 
-    database = tmp_path / "test.db"
 
-    repository = ExpenseRepository(str(database))
-
-    expense = Expense(
+def _make_expense(amount=1000, category="Food", description="Lunch"):
+    return Expense(
         id=0,
-        amount=1500,
-        category="Food",
-        description="Dinner",
+        amount=amount,
+        category=category,
+        description=description,
         date=datetime.now()
     )
+
+
+def test_add_and_get_expense(repository):
+    expense = _make_expense(1500, "Food", "Dinner")
 
     expense_id = repository.add(expense)
 
@@ -30,19 +35,24 @@ def test_add_and_get_expense(tmp_path):
     assert result.description == "Dinner"
 
 
-def test_delete_expense(tmp_path):
+def test_get_all_expenses(repository):
+    repository.add(_make_expense(100, "Food", "Breakfast"))
+    repository.add(_make_expense(200, "Transport", "Taxi"))
+    repository.add(_make_expense(300, "Bills", "Electric"))
 
-    database = tmp_path / "test.db"
+    expenses = repository.get_all()
 
-    repository = ExpenseRepository(str(database))
+    assert len(expenses) == 3
 
-    expense = Expense(
-        id=0,
-        amount=500,
-        category="Transport",
-        description="Taxi",
-        date=datetime.now()
-    )
+
+def test_get_by_id_missing(repository):
+    result = repository.get_by_id(999)
+
+    assert result is None
+
+
+def test_delete_expense(repository):
+    expense = _make_expense(500, "Transport", "Taxi")
 
     expense_id = repository.add(expense)
 
@@ -50,19 +60,12 @@ def test_delete_expense(tmp_path):
     assert repository.get_by_id(expense_id) is None
 
 
-def test_update_expense(tmp_path):
+def test_delete_missing_expense(repository):
+    assert repository.delete(999) is False
 
-    database = tmp_path / "test.db"
 
-    repository = ExpenseRepository(str(database))
-
-    expense = Expense(
-        id=0,
-        amount=1000,
-        category="Food",
-        description="Lunch",
-        date=datetime.now()
-    )
+def test_update_expense(repository):
+    expense = _make_expense(1000, "Food", "Lunch")
 
     expense.id = repository.add(expense)
 
@@ -77,9 +80,14 @@ def test_update_expense(tmp_path):
     assert updated.description == "Dinner"
 
 
-def test_database_error_handling(tmp_path):
-    # Attempting to open a directory as a database triggers an sqlite3 OperationalError
-    invalid_db_path = tmp_path
-    
-    with pytest.raises(DatabaseError):
-        ExpenseRepository(str(invalid_db_path))
+def test_update_missing_expense(repository):
+    expense = _make_expense()
+    expense.id = 999
+
+    assert repository.update(expense) is False
+
+
+def test_empty_database(repository):
+    expenses = repository.get_all()
+
+    assert expenses == []

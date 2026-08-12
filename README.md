@@ -1,87 +1,108 @@
 # Expense Tracker
 
-A command-line interface (CLI) Expense Tracker built in Python. This project utilizes a clean layered architecture with an SQLite database backend, parameterized SQL queries for security, robust input validators, and automated testing with Pytest.
+A professional CLI Expense Tracker built in Python with a layered architecture, SQLite persistence, dependency injection, custom exception handling, logging, and an AI/ML-ready foundation.
+
+## Architecture
+
+```text
+Expense-Tracker/
+│
+├── app/
+│   ├── config.py                  # Centralized configuration
+│   ├── exceptions.py              # Custom exception hierarchy
+│   ├── logging_config.py          # Logging configuration
+│   │
+│   ├── models/
+│   │   └── expense.py             # Expense dataclass
+│   │
+│   ├── repositories/
+│   │   ├── interface.py           # Abstract repository interface
+│   │   └── sqlite_repository.py   # SQLite implementation
+│   │
+│   ├── services/
+│   │   └── expense_service.py     # Business logic
+│   │
+│   ├── validators/
+│   │   └── expense_validator.py   # Input validation
+│   │
+│   ├── cli/
+│   │   ├── app.py                 # CLI application class
+│   │   ├── display.py             # Display helpers
+│   │   └── handlers.py            # CLI action handlers
+│   │
+│   └── ai/                        # AI module (Phase 4)
+│       ├── assistant.py
+│       ├── tools.py
+│       ├── context.py
+│       └── intents.py
+│
+├── ml/                            # ML module (Phase 4)
+│   ├── features.py
+│   ├── prediction.py
+│   └── anomaly_detection.py
+│
+├── tests/
+│   ├── test_models.py
+│   ├── test_validators.py
+│   ├── test_repository.py
+│   ├── test_services.py
+│   └── test_reports.py
+│
+├── data/
+│   └── expenses.db
+│
+├── main.py                        # Thin DI entry point
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
 
 ## Features
 
-- **Add Expense**: Record expenses with a positive amount, category, and non-empty description.
-- **View Expenses**: List all recorded expenses, ordered by date descending.
-- **Edit Expense**: Update the amount, category, or description of any expense using its ID.
-- **Delete Expense**: Delete recorded expenses by ID with a confirmation prompt.
-- **Search Expenses**: Look up expenses by a case-insensitive keyword match in descriptions or categories.
-- **Filter Expenses**: Filter expenses either by category or within a minimum/maximum amount range.
-- **Reports**: View summary statistics including total spending, average transaction, highest/lowest transactions, and category breakdowns.
-- **SQLite Persistence**: Data is persisted in a local SQLite database (`data/expenses.db`).
-- **Input Validation**: Prevents invalid values (e.g. empty descriptions, negative amounts) using custom validators.
+- **Add Expense** — Record expenses with amount, category, and description.
+- **View Expenses** — List all expenses ordered by date.
+- **Edit Expense** — Update any expense by ID.
+- **Delete Expense** — Remove expenses with confirmation.
+- **Search Expenses** — Case-insensitive keyword search.
+- **Filter Expenses** — Filter by category or amount range.
+- **Reports** — Total, average, highest, lowest, and category breakdown.
+- **SQLite Persistence** — Data persists across sessions.
+- **Custom Exceptions** — `ValidationError`, `ExpenseNotFoundError`, `DatabaseError`.
+- **Logging** — Application events logged to `expense_tracker.log`.
+- **AI/ML Ready** — Architecture prepared for intelligence features.
 
----
+## Dependency Injection
 
-## Project Architecture
-
-```
-expense_tracker/
-│
-├── main.py             # User interaction (CLI Menu & Prompts)
-├── models.py           # Data representations (Expense dataclass)
-├── services.py         # Business logic (Filtering, search, reports)
-├── repository.py       # SQLite database operations (CRUD, queries)
-├── validators.py       # Input validation logic
-│
-├── tests/              # Pytest automated test suite
-│   ├── __init__.py
-│   ├── test_repository.py
-│   └── test_services.py
-│
-└── data/               # Persistent storage directory
-    └── expenses.db     # SQLite database file (ignored in Git)
+```text
+main.py
+   │
+   ├── SQLiteExpenseRepository()
+   │         │
+   ├── ExpenseService(repository)
+   │         │
+   └── ExpenseTrackerCLI(service)
 ```
 
----
+The service layer depends on the repository **interface**, not on SQLite directly. This enables swapping databases or injecting test repositories without changing business logic.
 
 ## Installation & Setup
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd Expense_Tracker
-   ```
-
-2. **Install testing dependencies**:
-   ```bash
-   pip install pytest
-   ```
-
----
+```bash
+git clone <repository-url>
+cd Expense_Tracker
+pip install -r requirements.txt
+```
 
 ## Running the Application
 
-Start the CLI Expense Tracker by running the main entry point:
 ```bash
 python main.py
 ```
 
-Follow the interactive menu options:
-```
-========================================
-          EXPENSE TRACKER
-========================================
-1. Add Expense
-2. View Expenses
-3. Edit Expense
-4. Delete Expense
-5. Search Expenses
-6. Filter Expenses
-7. Reports
-8. Exit
-========================================
-```
-
----
-
 ## Running Tests
 
-Execute the automated test suite using `pytest`:
 ```bash
-pytest
+pytest -v
 ```
-All database operations in the test suite run in temporary test databases, preserving your local `data/expenses.db` records intact.
+
+All tests use temporary databases via `pytest`'s `tmp_path` fixture, preserving your local data.
