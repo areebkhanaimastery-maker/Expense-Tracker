@@ -16,8 +16,8 @@ CATEGORIES = [
 
 class ExpenseService:
 
-    def __init__(self):
-        self.repository = ExpenseRepository()
+    def __init__(self, repository=None):
+        self.repository = repository or ExpenseRepository()
 
     def add_expense(
         self,

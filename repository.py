@@ -14,106 +14,138 @@ class ExpenseRepository:
         return sqlite3.connect(self.database)
 
     def _create_table(self):
-        with self._connect() as connection:
-            connection.execute("""
-                CREATE TABLE IF NOT EXISTS expenses (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    amount REAL NOT NULL,
-                    category TEXT NOT NULL,
-                    description TEXT NOT NULL,
-                    date TEXT NOT NULL
-                )
-            """)
+        try:
+            with self._connect() as connection:
+                connection.execute("""
+                    CREATE TABLE IF NOT EXISTS expenses (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        amount REAL NOT NULL,
+                        category TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        date TEXT NOT NULL
+                    )
+                """)
+        except sqlite3.Error as error:
+            raise RuntimeError(
+                f"Failed to create expenses table: {error}"
+            ) from error
 
     def add(self, expense: Expense) -> int:
-        with self._connect() as connection:
-            cursor = connection.execute(
-                """
-                INSERT INTO expenses
-                (amount, category, description, date)
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    expense.amount,
-                    expense.category,
-                    expense.description,
-                    expense.date.isoformat()
+        try:
+            with self._connect() as connection:
+                cursor = connection.execute(
+                    """
+                    INSERT INTO expenses
+                    (amount, category, description, date)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        expense.amount,
+                        expense.category,
+                        expense.description,
+                        expense.date.isoformat()
+                    )
                 )
-            )
 
-            return cursor.lastrowid
+                return cursor.lastrowid
+
+        except sqlite3.Error as error:
+            raise RuntimeError(
+                f"Failed to add expense: {error}"
+            ) from error
 
     def get_all(self) -> list[Expense]:
-        with self._connect() as connection:
-            rows = connection.execute(
-                """
-                SELECT id, amount, category, description, date
-                FROM expenses
-                ORDER BY date DESC
-                """
-            ).fetchall()
+        try:
+            with self._connect() as connection:
+                rows = connection.execute(
+                    """
+                    SELECT id, amount, category, description, date
+                    FROM expenses
+                    ORDER BY date DESC
+                    """
+                ).fetchall()
 
-        return [
-            Expense(
+            return [
+                Expense(
+                    id=row[0],
+                    amount=row[1],
+                    category=row[2],
+                    description=row[3],
+                    date=datetime.fromisoformat(row[4])
+                )
+                for row in rows
+            ]
+
+        except sqlite3.Error as error:
+            raise RuntimeError(
+                f"Failed to retrieve expenses: {error}"
+            ) from error
+
+    def get_by_id(self, expense_id: int) -> Expense | None:
+        try:
+            with self._connect() as connection:
+                row = connection.execute(
+                    """
+                    SELECT id, amount, category, description, date
+                    FROM expenses
+                    WHERE id = ?
+                    """,
+                    (expense_id,)
+                ).fetchone()
+
+            if row is None:
+                return None
+
+            return Expense(
                 id=row[0],
                 amount=row[1],
                 category=row[2],
                 description=row[3],
                 date=datetime.fromisoformat(row[4])
             )
-            for row in rows
-        ]
-
-    def get_by_id(self, expense_id: int) -> Expense | None:
-        with self._connect() as connection:
-            row = connection.execute(
-                """
-                SELECT id, amount, category, description, date
-                FROM expenses
-                WHERE id = ?
-                """,
-                (expense_id,)
-            ).fetchone()
-
-        if row is None:
-            return None
-
-        return Expense(
-            id=row[0],
-            amount=row[1],
-            category=row[2],
-            description=row[3],
-            date=datetime.fromisoformat(row[4])
-        )
+        except sqlite3.Error as error:
+            raise RuntimeError(
+                f"Failed to retrieve expense by ID: {error}"
+            ) from error
 
     def update(self, expense: Expense) -> bool:
-        with self._connect() as connection:
-            cursor = connection.execute(
-                """
-                UPDATE expenses
-                SET amount = ?,
-                    category = ?,
-                    description = ?
-                WHERE id = ?
-                """,
-                (
-                    expense.amount,
-                    expense.category,
-                    expense.description,
-                    expense.id
+        try:
+            with self._connect() as connection:
+                cursor = connection.execute(
+                    """
+                    UPDATE expenses
+                    SET amount = ?,
+                        category = ?,
+                        description = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        expense.amount,
+                        expense.category,
+                        expense.description,
+                        expense.id
+                    )
                 )
-            )
 
-            return cursor.rowcount > 0
+                return cursor.rowcount > 0
+        except sqlite3.Error as error:
+            raise RuntimeError(
+                f"Failed to update expense: {error}"
+            ) from error
 
     def delete(self, expense_id: int) -> bool:
-        with self._connect() as connection:
-            cursor = connection.execute(
-                """
-                DELETE FROM expenses
-                WHERE id = ?
-                """,
-                (expense_id,)
-            )
+        try:
+            with self._connect() as connection:
+                cursor = connection.execute(
+                    """
+                    DELETE FROM expenses
+                    WHERE id = ?
+                    """,
+                    (expense_id,)
+                )
 
-            return cursor.rowcount > 0
+                return cursor.rowcount > 0
+        except sqlite3.Error as error:
+            raise RuntimeError(
+                f"Failed to delete expense: {error}"
+            ) from error

@@ -1,5 +1,5 @@
-from service import CATEGORIES
-from service import ExpenseService
+from services import CATEGORIES
+from services import ExpenseService
 from validators import (
     validate_amount,
     validate_text,
