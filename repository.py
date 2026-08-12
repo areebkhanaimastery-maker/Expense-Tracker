@@ -1,13 +1,18 @@
 import sqlite3
+import logging
 from datetime import datetime
 
 from models import Expense
+from app.config import settings
+from app.exceptions import DatabaseError
+
+logger = logging.getLogger(__name__)
 
 
 class ExpenseRepository:
 
-    def __init__(self, database="data/expenses.db"):
-        self.database = database
+    def __init__(self, database=None):
+        self.database = database or settings.database_path
         self._create_table()
 
     def _connect(self):
@@ -26,8 +31,9 @@ class ExpenseRepository:
                     )
                 """)
         except sqlite3.Error as error:
-            raise RuntimeError(
-                f"Failed to create expenses table: {error}"
+            logger.exception("Database error occurred during table creation")
+            raise DatabaseError(
+                f"Database operation failed: {error}"
             ) from error
 
     def add(self, expense: Expense) -> int:
@@ -50,8 +56,9 @@ class ExpenseRepository:
                 return cursor.lastrowid
 
         except sqlite3.Error as error:
-            raise RuntimeError(
-                f"Failed to add expense: {error}"
+            logger.exception("Database error occurred during add operation")
+            raise DatabaseError(
+                f"Database operation failed: {error}"
             ) from error
 
     def get_all(self) -> list[Expense]:
@@ -77,8 +84,9 @@ class ExpenseRepository:
             ]
 
         except sqlite3.Error as error:
-            raise RuntimeError(
-                f"Failed to retrieve expenses: {error}"
+            logger.exception("Database error occurred during get_all operation")
+            raise DatabaseError(
+                f"Database operation failed: {error}"
             ) from error
 
     def get_by_id(self, expense_id: int) -> Expense | None:
@@ -104,8 +112,9 @@ class ExpenseRepository:
                 date=datetime.fromisoformat(row[4])
             )
         except sqlite3.Error as error:
-            raise RuntimeError(
-                f"Failed to retrieve expense by ID: {error}"
+            logger.exception("Database error occurred during get_by_id operation")
+            raise DatabaseError(
+                f"Database operation failed: {error}"
             ) from error
 
     def update(self, expense: Expense) -> bool:
@@ -129,8 +138,9 @@ class ExpenseRepository:
 
                 return cursor.rowcount > 0
         except sqlite3.Error as error:
-            raise RuntimeError(
-                f"Failed to update expense: {error}"
+            logger.exception("Database error occurred during update operation")
+            raise DatabaseError(
+                f"Database operation failed: {error}"
             ) from error
 
     def delete(self, expense_id: int) -> bool:
@@ -146,6 +156,7 @@ class ExpenseRepository:
 
                 return cursor.rowcount > 0
         except sqlite3.Error as error:
-            raise RuntimeError(
-                f"Failed to delete expense: {error}"
+            logger.exception("Database error occurred during delete operation")
+            raise DatabaseError(
+                f"Database operation failed: {error}"
             ) from error
