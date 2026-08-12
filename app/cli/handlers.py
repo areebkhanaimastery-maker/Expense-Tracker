@@ -305,3 +305,52 @@ def show_reports(service):
 
     for category, amount in report["categories"].items():
         print(f"{category:<20} Rs. {amount:,.2f}")
+
+
+def show_analytics(analytics):
+
+    print("\n" + "=" * 50)
+    print("              ANALYTICS & REPORTS")
+    print("=" * 50)
+
+    total = analytics.total_spending()
+    count = analytics.expense_count()
+    average = analytics.average_expense()
+
+    if count == 0:
+        print("\nNo expenses available.")
+        return
+
+    print(f"\nTotal Spending : Rs. {total:,.2f}")
+    print(f"Transactions   : {count}")
+    print(f"Average        : Rs. {average:,.2f}")
+
+    highest = analytics.highest_expense()
+
+    if highest:
+        print(
+            f"Largest Expense: "
+            f"Rs. {highest.amount:,.2f} "
+            f"({highest.category} — {highest.description})"
+        )
+
+    print("\nCategory Breakdown:")
+
+    categories = analytics.category_totals()
+    percentages = analytics.category_percentages()
+
+    for category, amount in categories.items():
+        percentage = percentages.get(category, 0)
+        print(
+            f"{category:<18}"
+            f"Rs. {amount:>10,.2f}"
+            f"  ({percentage:>5.1f}%)"
+        )
+
+    print("\nMonthly Spending:")
+
+    for month, amount in analytics.monthly_totals().items():
+        print(
+            f"{month}: Rs. {amount:,.2f}"
+        )
+
