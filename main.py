@@ -3,6 +3,7 @@ from app.repositories.sqlite_repository import (
     SQLiteExpenseRepository
 )
 from app.services.expense_service import ExpenseService
+from app.services.analytics_service import AnalyticsService
 from app.logging_config import configure_logging
 from app.config import settings
 
@@ -13,9 +14,14 @@ def main():
 
     repository = SQLiteExpenseRepository()
 
-    service = ExpenseService(repository)
+    expense_service = ExpenseService(repository)
 
-    application = ExpenseTrackerCLI(service)
+    analytics_service = AnalyticsService(repository)
+
+    application = ExpenseTrackerCLI(
+        service=expense_service,
+        analytics=analytics_service
+    )
 
     application.run()
 

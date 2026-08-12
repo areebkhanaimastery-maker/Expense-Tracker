@@ -8,7 +8,8 @@ from app.cli.handlers import (
     delete_expense,
     search_expenses,
     filter_expenses,
-    show_reports
+    show_reports,
+    show_analytics
 )
 
 
@@ -17,8 +18,9 @@ logger = logging.getLogger(__name__)
 
 class ExpenseTrackerCLI:
 
-    def __init__(self, service):
+    def __init__(self, service, analytics=None):
         self.service = service
+        self.analytics = analytics
 
     def run(self):
 
@@ -53,7 +55,10 @@ class ExpenseTrackerCLI:
                     filter_expenses(self.service)
 
                 elif choice == "7":
-                    show_reports(self.service)
+                    if self.analytics:
+                        show_analytics(self.analytics)
+                    else:
+                        show_reports(self.service)
 
                 elif choice == "8":
                     print(
