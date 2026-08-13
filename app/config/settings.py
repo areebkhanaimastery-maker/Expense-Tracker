@@ -70,6 +70,7 @@ class Settings:
     # LLM / AI Configuration
     llm_provider: str = os.environ.get("LLM_PROVIDER", "ollama").lower()
     llm_model: str = os.environ.get("LLM_MODEL", "qwen2.5:3b")
+    ollama_base_url: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
     llm_temperature: float = float(
         os.environ.get("LLM_TEMPERATURE", "0.2")
     )

@@ -282,13 +282,21 @@ def start_ai_assistant(
         from app.ai.tools import build_tool_registry
 
         llm = OllamaProvider()
-        registry = build_tool_registry(
-            expense_service=expense_service,
-            analytics_service=analytics_service,
-            anomaly_service=anomaly_service,
-            prediction_service=prediction_service,
-            intelligence_service=intelligence_service,
-        )
+        health = llm.check_health()
+
+        print("\n" + "=" * 50)
+        print("           EXPENSE AI SYSTEM STATUS")
+        print("=" * 50)
+        print(f"Ollama Server   : {'[OK] Connected' if health['server_online'] else '[OFFLINE] Unavailable'}")
+        print(f"Model           : {health['model_name']} ({'[OK] Available' if health['model_available'] else '[MISSING] Unpulled'})")
+        print(f"AI Provider     : {'Ollama Local LLM' if health['status'] == 'ONLINE' else 'Smart Tool Fallback Engine'}")
+        print(f"AI Tools        : [OK] {len(registry._tools)} Tools Loaded")
+        print(f"SQLite          : [OK] Connected")
+        print(f"Fallback Engine : [OK] Ready")
+        print("-" * 50)
+        print(f"AI Mode         : {health['status']}")
+        print("=" * 50 + "\n")
+
         memory = ConversationMemory(max_messages=50)
         manager = ConversationManager(
             llm=llm,

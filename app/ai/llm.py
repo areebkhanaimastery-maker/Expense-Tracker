@@ -421,6 +421,7 @@ class OllamaProvider(LLMProvider):
         self,
         model: str | None = None,
         temperature: float | None = None,
+        base_url: str | None = None,
     ):
         self.model = model or settings.llm_model
         self.temperature = (
@@ -428,17 +429,56 @@ class OllamaProvider(LLMProvider):
             if temperature is not None
             else settings.llm_temperature
         )
+        self.base_url = base_url or settings.ollama_base_url
         self._client = None
+        self._fallback_warned = False
 
     def _get_client(self):
         """Lazy-initialize the Ollama client."""
         if self._client is None:
             try:
                 import ollama
-                self._client = ollama.Client()
+                self._client = ollama.Client(host=self.base_url)
             except ImportError:
                 return None
         return self._client
+
+    def check_health(self) -> dict[str, Any]:
+        """
+        Perform diagnostic check on Ollama endpoint and model availability.
+        """
+        client = self._get_client()
+        if client is None:
+            return {
+                "server_online": False,
+                "model_available": False,
+                "base_url": self.base_url,
+                "model_name": self.model,
+                "status": "OFFLINE",
+            }
+
+        try:
+            models_resp = client.list()
+            server_online = True
+            model_names = [m.model for m in models_resp.models] if hasattr(models_resp, "models") else []
+            model_available = any(self.model in name for name in model_names)
+
+            status = "ONLINE" if model_available else "MODEL_MISSING"
+            return {
+                "server_online": server_online,
+                "model_available": model_available,
+                "base_url": self.base_url,
+                "model_name": self.model,
+                "status": status,
+            }
+        except Exception:
+            return {
+                "server_online": False,
+                "model_available": False,
+                "base_url": self.base_url,
+                "model_name": self.model,
+                "status": "OFFLINE",
+            }
 
     def chat(
         self,
@@ -464,6 +504,8 @@ class OllamaProvider(LLMProvider):
                 response = client.chat(**kwargs)
                 msg = response.message
 
+                self._fallback_warned = False
+
                 return {
                     "role": msg.role,
                     "content": msg.content or "",
@@ -483,11 +525,12 @@ class OllamaProvider(LLMProvider):
                 }
 
             except Exception as e:
-                logger.warning(
-                    "Ollama API call to '%s' unavailable (%s). Using smart tool engine.",
-                    self.model,
-                    e,
-                )
+                if not self._fallback_warned:
+                    logger.info(
+                        "AI Provider Status: OLLAMA UNAVAILABLE (%s). Using Smart Tool Engine.",
+                        e,
+                    )
+                    self._fallback_warned = True
 
         # Fallback to Smart Tool Dispatch Engine
         return SmartToolFallbackEngine.process(messages, tools)

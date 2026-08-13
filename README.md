@@ -159,19 +159,42 @@ python scripts/generate_expenses.py --records 3500 --months 24
 
 ---
 
-## AI Assistant Setup (Ollama)
+## AI Assistant & Ollama Setup
 
-To interact with option `10. Ask Expense AI`:
-1. Ensure [Ollama](https://ollama.com/) is installed and running:
-   ```bash
-   ollama serve
-   ```
-2. Pull the configured default model:
-   ```bash
-   ollama pull qwen2.5:3b
-   ```
+To interact with option `10. Ask Expense AI` using local LLM inference:
+
+### 1. Download & Install Ollama
+Download the official Windows installer from:
+👉 **[https://ollama.com/download/windows](https://ollama.com/download/windows)**
+
+### 2. Pull the Configured Model (`qwen2.5:3b`)
+```bash
+ollama pull qwen2.5:3b
+```
+
+### 3. Verify Local API Server
+Ensure the Ollama service or daemon is running (`http://localhost:11434`):
+```powershell
+Invoke-RestMethod http://localhost:11434/api/tags
+```
+
+### 4. Run Python Diagnostics
+```bash
+python scripts/test_ollama.py
+python scripts/test_ai.py
+```
 
 ---
+
+## Windows AI Troubleshooting Guide
+
+| Symptom / Error | Cause | Fix |
+| :--- | :--- | :--- |
+| `ollama : The term 'ollama' is not recognized` | Ollama desktop installer not executed on host system | Download & run installer from [ollama.com/download/windows](https://ollama.com/download/windows). Restart terminal. |
+| `Ollama API call to 'qwen2.5:3b' unavailable` | Ollama daemon not running or server offline | Run `ollama serve` or start the Ollama Windows taskbar application. |
+| `model 'qwen2.5:3b' not found` | Target model not downloaded locally | Run `ollama pull qwen2.5:3b` in your terminal. |
+| `Connection refused: localhost:11434` | Firewall blocking port 11434 or custom base URL | Set `OLLAMA_BASE_URL=http://localhost:11434` in `.env`. |
+
 
 ## Phase 6 — Advanced Expense Intelligence
 
