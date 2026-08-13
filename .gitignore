@@ -13,3 +13,6 @@ expense_tracker.log
 .vscode/
 .idea/
 .pytest_cache/
+
+ml/models/*.joblib
+ml/models/*.json

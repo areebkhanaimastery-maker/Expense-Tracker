@@ -9,7 +9,8 @@ from app.cli.handlers import (
     search_expenses,
     filter_expenses,
     show_reports,
-    show_analytics
+    show_analytics,
+    start_ai_assistant,
 )
 
 
@@ -18,9 +19,17 @@ logger = logging.getLogger(__name__)
 
 class ExpenseTrackerCLI:
 
-    def __init__(self, service, analytics=None):
+    def __init__(
+        self,
+        service,
+        analytics=None,
+        anomaly_service=None,
+        prediction_service=None,
+    ):
         self.service = service
         self.analytics = analytics
+        self.anomaly_service = anomaly_service
+        self.prediction_service = prediction_service
 
     def run(self):
 
@@ -56,18 +65,28 @@ class ExpenseTrackerCLI:
 
                 elif choice == "7":
                     if self.analytics:
-                        show_analytics(self.analytics)
+                        show_reports(self.service)
                     else:
                         show_reports(self.service)
 
                 elif choice == "8":
-                    print(
-                        "\nAI Assistant is not yet available."
-                        "\nThis feature will be implemented"
-                        " in Phase 4."
-                    )
+                    if self.analytics:
+                        show_analytics(self.analytics)
+                    else:
+                        print(
+                            "\nAnalytics service is not"
+                            " available."
+                        )
 
                 elif choice == "9":
+                    start_ai_assistant(
+                        expense_service=self.service,
+                        analytics_service=self.analytics,
+                        anomaly_service=self.anomaly_service,
+                        prediction_service=self.prediction_service,
+                    )
+
+                elif choice == "10":
                     print(
                         "\nThank you for using"
                         " Expense Tracker."

@@ -354,3 +354,99 @@ def show_analytics(analytics):
             f"{month}: Rs. {amount:,.2f}"
         )
 
+
+def start_ai_assistant(
+    expense_service,
+    analytics_service,
+    anomaly_service=None,
+    prediction_service=None,
+):
+    """Launch the interactive AI Expense Assistant."""
+
+    print("\n" + "=" * 50)
+    print("          AI EXPENSE ASSISTANT")
+    print("=" * 50)
+
+    print("\nAsk anything about your expenses.")
+    print("\nExamples:")
+    print("  - How much did I spend this month?")
+    print("  - What category costs me the most?")
+    print("  - Compare this month with last month.")
+    print("  - What was my biggest expense?")
+    print("  - Did I have any unusual expenses?")
+    print("  - How much am I likely to spend next month?")
+    print("  - Give me a complete spending summary.")
+    print("\nType /help for commands.")
+    print("Type /clear to clear conversation.")
+    print("Type /exit to leave AI mode.")
+
+    # Initialize AI components
+    try:
+        from app.ai.llm import OllamaProvider
+        from app.ai.tools import build_tool_registry
+        from app.ai.conversation import ConversationManager
+        from app.ai.memory import ConversationMemory
+
+        llm = OllamaProvider()
+        registry = build_tool_registry(
+            expense_service=expense_service,
+            analytics_service=analytics_service,
+            anomaly_service=anomaly_service,
+            prediction_service=prediction_service,
+        )
+        memory = ConversationMemory(max_messages=50)
+        manager = ConversationManager(
+            llm=llm,
+            registry=registry,
+            memory=memory,
+        )
+
+    except Exception as e:
+        logger.error("Failed to initialize AI: %s", e)
+        print(f"\nFailed to initialize AI assistant: {e}")
+        print(
+            "Make sure Ollama is installed and running."
+        )
+        return
+
+    while True:
+        try:
+            user_input = input("\nYou: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n\nExiting AI mode.")
+            break
+
+        if not user_input:
+            continue
+
+        if user_input.lower() == "/exit":
+            print("\nExiting AI mode.")
+            break
+
+        if user_input.lower() == "/clear":
+            manager.clear_memory()
+            print("\nConversation cleared.")
+            continue
+
+        if user_input.lower() == "/help":
+            print("\nCommands:")
+            print("  /help   - Show this help message")
+            print("  /clear  - Clear conversation history")
+            print("  /exit   - Leave AI mode")
+            print("\nAvailable tools:")
+            for tool in registry.list_tools():
+                print(f"  - {tool.name}: {tool.description}")
+            continue
+
+        try:
+            response = manager.process_message(user_input)
+            print(f"\nAI: {response}")
+
+        except Exception as e:
+            logger.error("AI error: %s", e)
+            print(f"\nAI Error: {e}")
+            print(
+                "Please ensure Ollama is running "
+                "and try again."
+            )
+

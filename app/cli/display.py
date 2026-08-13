@@ -11,8 +11,9 @@ def display_menu():
     print("5. Search Expenses")
     print("6. Filter Expenses")
     print("7. Reports")
-    print("8. Ask Expense AI")
-    print("9. Exit")
+    print("8. Analytics")
+    print("9. AI Expense Assistant")
+    print("10. Exit")
 
     print("=" * 45)
 
