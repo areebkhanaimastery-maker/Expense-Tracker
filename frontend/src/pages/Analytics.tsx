@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  PieChart,
-  BarChart3,
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  DollarSign,
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';

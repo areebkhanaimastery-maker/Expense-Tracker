@@ -12,8 +12,6 @@ import {
   Moon,
   Menu,
   X,
-  Activity,
-  ShieldCheck,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { AIStatus } from '../types';

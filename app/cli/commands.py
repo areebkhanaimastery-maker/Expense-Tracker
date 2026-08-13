@@ -276,12 +276,15 @@ def start_ai_assistant(
     print("  /exit   - Leave AI mode")
 
     try:
-        from app.ai.conversation import ConversationManager
-        from app.ai.llm import OllamaProvider
-        from app.ai.memory import ConversationMemory
-        from app.ai.tools import build_tool_registry
+        from app.ai import create_ai_assistant
 
-        llm = OllamaProvider()
+        manager, registry, llm = create_ai_assistant(
+            expense_service=expense_service,
+            analytics_service=analytics_service,
+            anomaly_service=anomaly_service,
+            prediction_service=prediction_service,
+            intelligence_service=intelligence_service,
+        )
         health = llm.check_health()
 
         print("\n" + "=" * 50)
@@ -290,19 +293,12 @@ def start_ai_assistant(
         print(f"Ollama Server   : {'[OK] Connected' if health['server_online'] else '[OFFLINE] Unavailable'}")
         print(f"Model           : {health['model_name']} ({'[OK] Available' if health['model_available'] else '[MISSING] Unpulled'})")
         print(f"AI Provider     : {'Ollama Local LLM' if health['status'] == 'ONLINE' else 'Smart Tool Fallback Engine'}")
-        print(f"AI Tools        : [OK] {len(registry._tools)} Tools Loaded")
+        print(f"AI Tools        : [OK] {len(registry.list_tools())} Tools Loaded")
         print(f"SQLite          : [OK] Connected")
         print(f"Fallback Engine : [OK] Ready")
         print("-" * 50)
         print(f"AI Mode         : {health['status']}")
         print("=" * 50 + "\n")
-
-        memory = ConversationMemory(max_messages=50)
-        manager = ConversationManager(
-            llm=llm,
-            registry=registry,
-            memory=memory,
-        )
     except Exception as e:
         logger.error("Failed to initialize AI assistant: %s", e)
         print(f"\nFailed to initialize AI assistant: {e}")

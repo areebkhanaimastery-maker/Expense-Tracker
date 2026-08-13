@@ -148,6 +148,11 @@ export interface ScenarioResult {
   annualized_savings: number;
 }
 
+export interface InsightsResponse {
+  insights: string[];
+  generated_at: string;
+}
+
 export interface AnomalyItem {
   expense_id: number;
   amount: number;

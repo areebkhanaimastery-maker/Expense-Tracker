@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, RefreshCw, AlertCircle, Calendar, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { api } from '../api/client';
 import type { PredictionResponse, CategoryForecast } from '../types';
 

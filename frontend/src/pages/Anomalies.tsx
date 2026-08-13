@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, ShieldAlert, Filter, Search } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { api } from '../api/client';
-import type { AnomalyResponse, AnomalyItem } from '../types';
+import type { AnomalyResponse } from '../types';
 
 export const Anomalies: React.FC = () => {
   const [data, setData] = useState<AnomalyResponse | null>(null);
@@ -39,9 +39,14 @@ export const Anomalies: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Unusual Transaction Detection</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Statistical anomaly detection powered by Scikit-Learn Isolation Forest.</p>
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Unusual Transaction Detection</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Statistical anomaly detection powered by Scikit-Learn Isolation Forest.</p>
+          </div>
         </div>
 
         {/* Severity Filter */}

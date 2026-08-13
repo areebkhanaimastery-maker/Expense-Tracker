@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Settings as SettingsIcon, Database, Cpu, Bot, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Bot } from 'lucide-react';
 import { api } from '../api/client';
 import type { SystemSettings, AIStatus } from '../types';
 

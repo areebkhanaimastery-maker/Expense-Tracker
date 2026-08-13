@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react';
 import {
   BrainCircuit,
   Calculator,
-  RefreshCw,
-  Zap,
-  Activity,
+  Repeat,
   CreditCard,
-  CheckCircle2,
-  AlertCircle,
+  Zap,
+  TrendingUp,
+  TrendingDown,
   Sparkles,
-  ArrowRight,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type {
@@ -247,7 +245,7 @@ export const Intelligence: React.FC = () => {
         )}
       </div>
 
-      {/* Automated Category Budgets */}
+      {/* Recommended Category Budgets */}
       <div className="glass-panel p-6">
         <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4">Recommended Category Budgets</h3>
         <div className="overflow-x-auto">
@@ -301,6 +299,156 @@ export const Intelligence: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Behavioral Habits & Trends */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Behavioral Habits Panel */}
+        <div className="glass-panel p-6">
+          <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+            <Zap className="w-5 h-5 text-amber-500" />
+            <span>Behavioral Habits Analysis</span>
+          </h3>
+          {habits && (
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+                  <span className="text-slate-500 block text-[10px] font-semibold uppercase">Weekend / Weekday Ratio</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white text-sm mt-0.5 block">
+                    {habits.weekend_vs_weekday_ratio.toFixed(2)}x
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
+                  <span className="text-slate-500 block text-[10px] font-semibold uppercase">Late / Early Month Ratio</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white text-sm mt-0.5 block">
+                    {habits.late_month_vs_early_month_ratio.toFixed(2)}x
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-xs">Habit Insights</h4>
+                <ul className="space-y-1.5 list-disc list-inside text-slate-600 dark:text-slate-400 text-xs">
+                  {habits.habits_summary.map((summaryItem, idx) => (
+                    <li key={idx}>{summaryItem}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Category Trends Panel */}
+        <div className="glass-panel p-6">
+          <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            <span>Category Spending Trends</span>
+          </h3>
+          <div className="space-y-3">
+            {trends.map((t) => (
+              <div key={t.category} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">{t.category}</span>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    Growth: {t.growth_rate >= 0 ? `+${t.growth_rate.toFixed(1)}%` : `${t.growth_rate.toFixed(1)}%`}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-md font-semibold text-[10px] ${
+                      t.direction === 'UP'
+                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                    }`}
+                  >
+                    {t.direction === 'UP' ? (
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3 mr-1" />
+                    )}
+                    {t.direction}
+                  </span>
+                  {t.is_accelerating && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-bold">
+                      ACCELERATING
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recurring & Subscriptions Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Recurring Expenses Table */}
+        <div className="glass-panel p-6">
+          <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+            <Repeat className="w-5 h-5 text-blue-600" />
+            <span>Recurring Expenses</span>
+          </h3>
+          {recurring.length === 0 ? (
+            <p className="text-xs text-slate-500">No recurring expense patterns detected yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                  <tr>
+                    <th className="pb-2 font-semibold">Pattern</th>
+                    <th className="pb-2 font-semibold">Frequency</th>
+                    <th className="pb-2 font-semibold text-right">Avg Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  {recurring.map((rec, i) => (
+                    <tr key={i}>
+                      <td className="py-2.5 font-medium text-slate-900 dark:text-white">{rec.description}</td>
+                      <td className="py-2.5 text-slate-500">{rec.frequency}</td>
+                      <td className="py-2.5 text-right font-mono font-bold text-slate-900 dark:text-white">
+                        Rs. {rec.average_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Active Subscriptions Table */}
+        <div className="glass-panel p-6">
+          <h3 className="font-bold text-base text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+            <CreditCard className="w-5 h-5 text-indigo-600" />
+            <span>Active Subscriptions</span>
+          </h3>
+          {subscriptions.length === 0 ? (
+            <p className="text-xs text-slate-500">No active subscriptions detected.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                  <tr>
+                    <th className="pb-2 font-semibold">Service</th>
+                    <th className="pb-2 font-semibold">Frequency</th>
+                    <th className="pb-2 font-semibold text-right">Annual Cost</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  {subscriptions.map((sub, i) => (
+                    <tr key={i}>
+                      <td className="py-2.5 font-medium text-slate-900 dark:text-white">{sub.service_name}</td>
+                      <td className="py-2.5 text-slate-500">{sub.frequency}</td>
+                      <td className="py-2.5 text-right font-mono font-bold text-slate-900 dark:text-white">
+                        Rs. {sub.annualized_cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

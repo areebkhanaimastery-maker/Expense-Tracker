@@ -2,16 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
   Plus,
   Search,
-  Filter,
   Trash2,
   Edit2,
   ChevronLeft,
   ChevronRight,
   X,
-  Calendar,
-  DollarSign,
-  Tag,
-  FileText,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { Expense, PaginatedResponse } from '../types';

@@ -104,7 +104,7 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
-    getInsights: () => request<{ insights: string[]; generated_at: string }>('/intelligence/insights'),
+    getInsights: () => request<InsightsResponse>('/intelligence/insights'),
   },
 
   // Machine Learning
