@@ -226,22 +226,70 @@ class AnalyticsService:
 
     def spending_summary(self) -> dict:
         """Return a complete aggregated spending summary."""
-
         highest = self.highest_expense()
         lowest = self.lowest_expense()
 
+        tot = self.total_spending()
+        cnt = self.expense_count()
+        avg = self.average_expense()
+        cats = self.category_totals()
+        cat_pcts = self.category_percentages()
+
         return {
-            "total": self.total_spending(),
-            "count": self.expense_count(),
-            "average": self.average_expense(),
+            "total": tot,
+            "count": cnt,
+            "average": avg,
             "highest": highest,
             "lowest": lowest,
-            "categories": self.category_totals(),
-            "category_percentages":
-                self.category_percentages(),
-            "category_count":
-                self.category_count(),
+            "categories": cats,
+            "category_percentages": cat_pcts,
+            "category_count": self.category_count(),
             "monthly": self.monthly_totals(),
             "daily": self.daily_totals(),
-            "monthly_change": self.monthly_change()
+            "monthly_change": self.monthly_change(),
+            # Aliases for new tools
+            "total_spending": round(tot, 2),
+            "total_count": cnt,
+            "average_expense": round(avg, 2),
+            "category_totals": {k: round(v, 2) for k, v in cats.items()},
+        }
+
+    def get_spending_between(
+        self, start_date: str | datetime | date, end_date: str | datetime | date
+    ) -> dict:
+        """
+        Return filtered spending statistics between start_date and end_date (inclusive).
+        """
+        from app.utils.dates import parse_datetime
+
+        s_dt = parse_datetime(start_date)
+        e_dt = parse_datetime(end_date)
+
+        # Force end of day for end_date if time is 00:00:00
+        if e_dt.hour == 0 and e_dt.minute == 0 and e_dt.second == 0:
+            e_dt = e_dt.replace(hour=23, minute=59, second=59)
+
+        all_expenses = self.get_all_expenses()
+        filtered = [
+            e for e in all_expenses
+            if s_dt <= parse_datetime(e.date) <= e_dt
+        ]
+
+        total = sum(e.amount for e in filtered)
+        count = len(filtered)
+        avg = (total / count) if count > 0 else 0.0
+
+        cat_breakdown = defaultdict(float)
+        for e in filtered:
+            cat_breakdown[e.category] += e.amount
+
+        return {
+            "start_date": s_dt.strftime("%Y-%m-%d"),
+            "end_date": e_dt.strftime("%Y-%m-%d"),
+            "total_spending": round(total, 2),
+            "transaction_count": count,
+            "average_expense": round(avg, 2),
+            "category_breakdown": {
+                k: round(v, 2) for k, v in cat_breakdown.items()
+            },
         }

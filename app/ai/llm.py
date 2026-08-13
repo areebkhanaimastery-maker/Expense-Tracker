@@ -16,6 +16,9 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
+from app.utils.dates import resolve_period
+
+
 class LLMProvider(ABC):
     """Abstract base class for LLM providers."""
 
@@ -66,6 +69,9 @@ class SmartToolFallbackEngine:
         # Match user query intent to tool call
         tool_call = SmartToolFallbackEngine._match_intent(user_input)
         if tool_call:
+            tool_name = tool_call.get("function", {}).get("name")
+            tool_args = tool_call.get("function", {}).get("arguments", {})
+            logger.info("INFO Executing tool: %s with args=%s", tool_name, tool_args)
             return {
                 "role": "assistant",
                 "content": "",
@@ -77,6 +83,8 @@ class SmartToolFallbackEngine:
             "role": "assistant",
             "content": (
                 "I am your AI Expense Assistant. You can ask me:\n"
+                "  - 'How much did I spend last week?'\n"
+                "  - 'How much did I spend in the last 7 days?'\n"
                 "  - 'How much did I spend this month?'\n"
                 "  - 'What category costs me the most?'\n"
                 "  - 'Compare this month with last month'\n"
@@ -90,7 +98,28 @@ class SmartToolFallbackEngine:
 
     @staticmethod
     def _match_intent(user_input: str) -> dict[str, Any] | None:
-        # Advanced Intelligence Intent Matches
+        # 1. Date-Period Resolution Priority (today, last week, this week, last 7 days, etc.)
+        # Exclude pure comparisons where comparing month vs month is requested
+        if not ("compare" in user_input and "month" in user_input):
+            period_res = resolve_period(user_input)
+            if period_res:
+                logger.info(
+                    "INFO Intent resolved: period=%s start=%s end=%s",
+                    period_res["period"],
+                    period_res["start_date"],
+                    period_res["end_date"],
+                )
+                return {
+                    "function": {
+                        "name": "get_spending_between",
+                        "arguments": {
+                            "start_date": period_res["start_date"],
+                            "end_date": period_res["end_date"],
+                        },
+                    }
+                }
+
+        # 2. Advanced Intelligence Intent Matches
         if "profile" in user_input:
             return {"function": {"name": "get_spending_profile", "arguments": {}}}
 
@@ -114,18 +143,11 @@ class SmartToolFallbackEngine:
 
         if "what if" in user_input or "reduce" in user_input or "increase" in user_input:
             import re
-            # Extract category name (valid list: Food, Transport, Shopping, Bills, Entertainment, Health, Education, Other)
             categories = ["food", "transport", "shopping", "bills", "entertainment", "health", "education", "other"]
             cat_match = next((c for c in categories if c in user_input), "Shopping")
-            
-            # Extract change number (e.g. 20% or 5000)
             nums = re.findall(r"\d+", user_input)
             val = float(nums[0]) if nums else 10.0
-            
-            # Direction
             direction = -1.0 if "reduce" in user_input or "save" in user_input or "cut" in user_input or "decrease" in user_input else 1.0
-            
-            # Check if percentage
             is_pct = "%" in user_input or "percent" in user_input or val < 100.0
             
             return {
@@ -142,15 +164,9 @@ class SmartToolFallbackEngine:
         if "analysis" in user_input or "insights" in user_input or "insight" in user_input:
             return {"function": {"name": "get_advanced_insights", "arguments": {}}}
 
-        # Baseline Analytics Intent Matches
-        if "compare" in user_input or ("last month" in user_input and "this month" in user_input):
+        # 3. Baseline Analytics Intent Matches
+        if "compare" in user_input:
             return {"function": {"name": "compare_months", "arguments": {}}}
-
-        if "this month" in user_input or "current month" in user_input:
-            return {"function": {"name": "get_current_month_summary", "arguments": {}}}
-
-        if "previous month" in user_input or "last month" in user_input:
-            return {"function": {"name": "get_previous_month_summary", "arguments": {}}}
 
         if "category" in user_input and ("most" in user_input or "highest" in user_input or "cost" in user_input or "breakdown" in user_input):
             return {"function": {"name": "get_category_totals", "arguments": {}}}
@@ -161,16 +177,13 @@ class SmartToolFallbackEngine:
         if "next month" in user_input or "forecast" in user_input or "predict" in user_input or "likely to spend" in user_input:
             return {"function": {"name": "predict_next_month", "arguments": {}}}
 
-        if "next 7" in user_input or "next week" in user_input:
-            return {"function": {"name": "predict_next_7_days", "arguments": {}}}
-
         if "largest" in user_input or "biggest" in user_input or "highest expense" in user_input:
             return {"function": {"name": "get_highest_expense", "arguments": {}}}
 
         if "smallest" in user_input or "lowest expense" in user_input:
             return {"function": {"name": "get_lowest_expense", "arguments": {}}}
 
-        if "summary" in user_input or "total" in user_input or "overall" in user_input:
+        if "lifetime" in user_input or "overall" in user_input or "all time" in user_input:
             return {"function": {"name": "get_spending_summary", "arguments": {}}}
 
         # Default fallback tool call
@@ -200,7 +213,23 @@ class SmartToolFallbackEngine:
             }
 
         # Format grounded responses based on tool outputs
-        if tool_name == "get_current_month_summary":
+        if tool_name == "get_spending_between":
+            start = tool_data.get("start_date", "")
+            end = tool_data.get("end_date", "")
+            total = tool_data.get("total_spending", 0)
+            count = tool_data.get("transaction_count", 0)
+            avg = tool_data.get("average_expense", 0)
+            cats = tool_data.get("category_breakdown", {})
+            cats_str = "\n".join(f"  - {cat:<18}: Rs. {amt:,.2f}" for cat, amt in cats.items()) if cats else "  - None"
+            text = (
+                f"[FACT] Period Spending Overview ({start} through {end}):\n"
+                f"  - Total Spending   : Rs. {total:,.2f}\n"
+                f"  - Transactions     : {count}\n"
+                f"  - Average Expense  : Rs. {avg:,.2f}\n\n"
+                f"Category Breakdown:\n{cats_str}"
+            )
+
+        elif tool_name == "get_current_month_summary":
             total = tool_data.get("total", 0)
             count = tool_data.get("count", 0)
             avg = tool_data.get("average", 0)

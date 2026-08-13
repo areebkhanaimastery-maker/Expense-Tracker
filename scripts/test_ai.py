@@ -58,12 +58,15 @@ def test_ai_system():
     # 3. Test Test Cases
     test_queries = [
         "How much did I spend this month?",
+        "How much did I spend last week?",
+        "How much did I spend in the last 7 days?",
+        "How much did I spend last month?",
+        "What is my total lifetime spending?",
         "What category costs me the most?",
         "Compare this month with last month.",
         "What was my largest expense?",
         "Did I have any unusual expenses?",
         "How much am I likely to spend next month?",
-        "Give me a complete spending summary.",
         "What does my spending profile look like?",
         "What should my Food budget be?",
         "Which expenses are recurring?",

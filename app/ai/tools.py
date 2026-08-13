@@ -146,6 +146,27 @@ def build_tool_registry(
         handler=get_current_month_summary,
     ))
 
+    def get_spending_between(start_date: str, end_date: str):
+        return analytics_service.get_spending_between(start_date, end_date)
+
+    registry.register(ToolDefinition(
+        name="get_spending_between",
+        description="Get spending summary and category breakdown between specific start_date and end_date (YYYY-MM-DD).",
+        handler=get_spending_between,
+        parameters=[
+            ToolParameter(
+                name="start_date",
+                type="string",
+                description="Start date in YYYY-MM-DD format.",
+            ),
+            ToolParameter(
+                name="end_date",
+                type="string",
+                description="End date in YYYY-MM-DD format.",
+            ),
+        ],
+    ))
+
     def get_previous_month_summary():
         expenses = analytics_service.previous_month_expenses()
         total = sum(e.amount for e in expenses)
