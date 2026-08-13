@@ -256,6 +256,7 @@ def start_ai_assistant(
     analytics_service,
     anomaly_service=None,
     prediction_service=None,
+    intelligence_service=None,
 ) -> None:
     """CLI action to launch the AI Expense Assistant."""
     print_header("AI EXPENSE ASSISTANT", width=50)
@@ -286,6 +287,7 @@ def start_ai_assistant(
             analytics_service=analytics_service,
             anomaly_service=anomaly_service,
             prediction_service=prediction_service,
+            intelligence_service=intelligence_service,
         )
         memory = ConversationMemory(max_messages=50)
         manager = ConversationManager(

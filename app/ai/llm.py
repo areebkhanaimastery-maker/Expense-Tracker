@@ -227,6 +227,97 @@ class SmartToolFallbackEngine:
                 f"  - Average Expense       : Rs. {avg:,.2f}"
             )
 
+        elif tool_name == "get_spending_profile":
+            text = (
+                f"[SPENDING PROFILE] Personal Spending Profile Overview:\n"
+                f"  - Total Spending          : Rs. {tool_data.get('total_spending', 0):,.2f}\n"
+                f"  - Avg Monthly Spending    : Rs. {tool_data.get('avg_monthly_spending', 0):,.2f}\n"
+                f"  - Avg Daily Spending      : Rs. {tool_data.get('avg_daily_spending', 0):,.2f}\n"
+                f"  - Median Daily Spending   : Rs. {tool_data.get('median_daily_spending', 0):,.2f}\n"
+                f"  - Avg Transaction Size    : Rs. {tool_data.get('avg_transaction_size', 0):,.2f}\n"
+                f"  - Largest Expense Amount  : Rs. {tool_data.get('largest_expense_amount', 0):,.2f} ({tool_data.get('largest_expense_desc', '')})\n"
+                f"  - Volatility Classification: {tool_data.get('spending_volatility', '')}\n"
+                f"  - Transaction Count       : {tool_data.get('transaction_count', 0):,}\n"
+                f"  - Spending Frequency      : {tool_data.get('spending_frequency', '')}"
+            )
+
+        elif tool_name == "get_budget_status":
+            lines = ["[BUDGET ANALYSIS] Current Category Budgets and Utilization:"]
+            for b in tool_data:
+                lines.append(
+                    f"  - {b['category']:<12}: Limit Rs. {b['recommended_budget']:,.2f} | Spent Rs. {b['current_spending']:,.2f} | "
+                    f"Remaining Rs. {b['remaining']:,.2f} ({b['status']})"
+                )
+            text = "\n".join(lines)
+
+        elif tool_name == "get_recurring_expenses":
+            if isinstance(tool_data, list) and len(tool_data) > 0:
+                lines = ["[RECURRING TRANSACTIONS] Detected Recurring Obligation Patterns:"]
+                for r in tool_data:
+                    lines.append(
+                        f"  - {r['description']:<20}: Category: {r['category']:<12} | Avg Rs. {r['average_amount']:,.2f} | "
+                        f"Frequency: {r['frequency']} (Confidence: {r['confidence'] * 100:.0f}%)"
+                    )
+                text = "\n".join(lines)
+            else:
+                text = "[RECURRING TRANSACTIONS] No recurring payment pattern obligations identified in your dataset."
+
+        elif tool_name == "get_subscriptions":
+            if isinstance(tool_data, list) and len(tool_data) > 0:
+                lines = ["[SUBSCRIPTIONS] Identified Active Subscription/Utility Services:"]
+                for s in tool_data:
+                    lines.append(
+                        f"  - {s['service_name']:<20}: Cost Rs. {s['average_cost']:,.2f}/{s['frequency']} "
+                        f"(Annualized: Rs. {s['annualized_cost']:,.2f})"
+                    )
+                text = "\n".join(lines)
+            else:
+                text = "[SUBSCRIPTIONS] No active digital or regular utility subscriptions identified."
+
+        elif tool_name == "get_spending_habits":
+            lines = [
+                f"[HABIT ANALYSIS] Spending Habits Summary:",
+                f"  - Weekend/Weekday Ratio: {tool_data.get('weekend_vs_weekday_ratio', 0):.2f}",
+                f"  - Late/Early Month Ratio: {tool_data.get('late_month_vs_early_month_ratio', 0):.2f}",
+                f"  - Small Transactions (< Rs. 1000): {tool_data.get('small_transaction_count', 0)} times (Total Rs. {tool_data.get('small_transaction_total', 0):,.2f})",
+                f"  - Large Transactions (>= Rs. 10000): {tool_data.get('large_transaction_count', 0)} times (Total Rs. {tool_data.get('large_transaction_total', 0):,.2f})",
+                "\nBehavioral Summary:"
+            ]
+            for s in tool_data.get("habits_summary", []):
+                lines.append(f"  * {s}")
+            text = "\n".join(lines)
+
+        elif tool_name == "get_category_forecasts":
+            lines = ["[ML FORECASTS] Category Spending Forecasts for Next Month:"]
+            for cat, amt in tool_data.items():
+                lines.append(f"  - {cat:<15}: Estimated spending Rs. {amt:,.2f}")
+            text = "\n".join(lines)
+
+        elif tool_name == "get_spending_trends":
+            lines = ["[TREND ANALYSIS] Historical Category Trend Directions:"]
+            for t in tool_data:
+                lines.append(
+                    f"  - {t['category']:<15}: {t['direction']:<12} | MoM Growth: {t['growth_rate']:+5.1f}% "
+                    f"({'Accelerating' if t['is_accelerating'] else 'Decelerating/Stable'})"
+                )
+            text = "\n".join(lines)
+
+        elif tool_name == "run_spending_scenario":
+            text = (
+                f"[SCENARIO SIMULATION] Scenario: {tool_data.get('scenario_name', '')}\n"
+                f"  - Category          : {tool_data.get('category', '')}\n"
+                f"  - Original Spending : Rs. {tool_data.get('original_spending', 0):,.2f}\n"
+                f"  - Simulated Spending: Rs. {tool_data.get('new_spending', 0):,.2f}\n"
+                f"  - Monthly Impact    : Rs. {tool_data.get('monthly_savings', 0):,.2f}\n"
+                f"  - Annualized Impact : Rs. {tool_data.get('annualized_savings', 0):,.2f}"
+            )
+
+        elif tool_name == "get_advanced_insights":
+            lines = ["[ADVANCED INSIGHTS] Actionable Financial Insights Generated:"]
+            for i in tool_data.get("insights", []):
+                lines.append(f"  - {i}")
+            text = "\n".join(lines)
+
         else:
             text = f"[ANALYSIS RESULT] {json.dumps(tool_data, indent=2, default=str)}"
 
