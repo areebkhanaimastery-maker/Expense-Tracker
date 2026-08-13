@@ -1,38 +1,122 @@
-"""
-Preprocessing, scaling, and categorical encoding utilities for the ML pipeline.
-"""
-from typing import List, Dict, Tuple
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 
-def scale_amounts(features: List[List[float]]) -> List[List[float]]:
-    """
-    Scale the amount field (first element of feature vectors) using min-max scaling.
-    
-    Returns a new list of features with scaled amounts in [0, 1].
-    """
-    if not features:
-        return []
-    
-    amounts = [f[0] for f in features]
-    min_amount = min(amounts)
-    max_amount = max(amounts)
-    range_val = max_amount - min_amount if max_amount > min_amount else 1.0
-    
-    scaled_features = []
-    for f in features:
-        scaled_amount = (f[0] - min_amount) / range_val
-        scaled_features.append([scaled_amount] + f[1:])
-        
-    return scaled_features
+TARGET_COLUMN = "amount"
 
 
-def encode_categories(categories: List[str]) -> Tuple[List[int], Dict[str, int]]:
+def prepare_features(
+    df: pd.DataFrame
+) -> pd.DataFrame:
     """
-    Encode categorical strings into numerical labels.
-    
-    Returns encoded labels and the label-to-index mapping dictionary.
+    Prepare the feature matrix for machine learning.
+
+    Removes columns that should not be directly
+    provided to the model.
     """
-    unique_cats = sorted(list(set(categories)))
-    mapping = {cat: idx for idx, cat in enumerate(unique_cats)}
-    encoded = [mapping[cat] for cat in categories]
-    return encoded, mapping
+
+    data = df.copy()
+
+    columns_to_remove = [
+        "id",
+        "description",
+        "date",
+        TARGET_COLUMN,
+    ]
+
+    existing_columns = [
+        column
+        for column in columns_to_remove
+        if column in data.columns
+    ]
+
+    return data.drop(
+        columns=existing_columns
+    )
+
+
+def prepare_target(
+    df: pd.DataFrame
+) -> pd.Series:
+    """
+    Extract the target variable.
+    """
+
+    if TARGET_COLUMN not in df.columns:
+        raise ValueError(
+            f"Missing target column: {TARGET_COLUMN}"
+        )
+
+    return df[TARGET_COLUMN]
+
+
+def temporal_train_test_split(
+    df: pd.DataFrame,
+    test_size: float = 0.2
+):
+    """
+    Split expense data chronologically.
+
+    Older records are used for training.
+    Newer records are used for testing.
+
+    This prevents temporal data leakage.
+    """
+
+    if not 0 < test_size < 1:
+        raise ValueError(
+            "test_size must be between 0 and 1."
+        )
+
+    data = df.sort_values(
+        "date"
+    ).reset_index(drop=True)
+
+    split_index = int(
+        len(data) * (1 - test_size)
+    )
+
+    if split_index <= 0:
+        raise ValueError(
+            "Dataset is too small for splitting."
+        )
+
+    train = data.iloc[
+        :split_index
+    ].copy()
+
+    test = data.iloc[
+        split_index:
+    ].copy()
+
+    return train, test
+
+
+def scale_features(
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame
+):
+    """
+    Standardize numerical features.
+
+    The scaler is fitted ONLY on training data
+    to prevent information leakage.
+    """
+
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(
+        X_train
+    )
+
+    X_test_scaled = scaler.transform(
+        X_test
+    )
+
+    return (
+        X_train_scaled,
+        X_test_scaled,
+        scaler
+    )
