@@ -1,11 +1,11 @@
 """
 AI Tools — read-only functions the AI assistant can invoke.
 
-These tools act as the boundary between the AI layer and
-the service/repository layers. The AI never touches SQLite
-directly.
+These tools act as the boundary between the AI layer and the service layers.
+The AI never touches SQLite directly.
 """
 
+from typing import Any
 from app.ai.registry import ToolDefinition, ToolParameter, ToolRegistry
 
 
@@ -14,6 +14,7 @@ def build_tool_registry(
     analytics_service,
     anomaly_service=None,
     prediction_service=None,
+    intelligence_service=None,
 ) -> ToolRegistry:
     """
     Build and return a fully populated ToolRegistry.
@@ -301,6 +302,184 @@ def build_tool_registry(
             name="predict_next_month",
             description="Predict estimated total spending for next month based on historical patterns.",
             handler=predict_next_month,
+        ))
+
+    # --- Advanced Intelligence tools ---
+    if intelligence_service is not None:
+        def get_spending_profile():
+            p = intelligence_service.get_spending_profile()
+            return {
+                "total_spending": p.total_spending,
+                "avg_monthly_spending": p.avg_monthly_spending,
+                "avg_daily_spending": p.avg_daily_spending,
+                "median_daily_spending": p.median_daily_spending,
+                "avg_transaction_size": p.avg_transaction_size,
+                "largest_expense_amount": p.largest_expense_amount,
+                "largest_expense_desc": p.largest_expense_desc,
+                "most_expensive_category": p.most_expensive_category,
+                "lowest_spending_category": p.lowest_spending_category,
+                "weekend_spending_monthly": p.weekend_spending_monthly,
+                "weekday_spending_monthly": p.weekday_spending_monthly,
+                "spending_volatility": p.spending_volatility,
+                "transaction_count": p.transaction_count,
+                "spending_frequency": p.spending_frequency,
+            }
+
+        registry.register(ToolDefinition(
+            name="get_spending_profile",
+            description="Retrieve detailed personal spending profile statistics and volatility.",
+            handler=get_spending_profile,
+        ))
+
+        def get_budget_status():
+            budgets = intelligence_service.get_budget_status()
+            return [
+                {
+                    "category": b.category,
+                    "historical_average": b.historical_average,
+                    "recommended_budget": b.recommended_budget,
+                    "current_spending": b.current_spending,
+                    "remaining": b.remaining,
+                    "utilization_percentage": b.utilization_percentage,
+                    "projected_spending": b.projected_spending,
+                    "status": b.status,
+                }
+                for b in budgets
+            ]
+
+        registry.register(ToolDefinition(
+            name="get_budget_status",
+            description="Get current month budget utilization analysis and recommended budget limits for all categories.",
+            handler=get_budget_status,
+        ))
+
+        def get_recurring_expenses():
+            recurring = intelligence_service.get_recurring_expenses()
+            return [
+                {
+                    "description": r.description,
+                    "category": r.category,
+                    "frequency": r.frequency,
+                    "average_amount": r.average_amount,
+                    "occurrences": r.occurrences,
+                    "confidence": r.confidence,
+                }
+                for r in recurring
+            ]
+
+        registry.register(ToolDefinition(
+            name="get_recurring_expenses",
+            description="Detect recurring payment pattern obligations (weekly, monthly, quarterly).",
+            handler=get_recurring_expenses,
+        ))
+
+        def get_subscriptions():
+            subs = intelligence_service.get_subscriptions()
+            return [
+                {
+                    "service_name": s.service_name,
+                    "category": s.category,
+                    "frequency": s.frequency,
+                    "average_cost": s.average_cost,
+                    "annualized_cost": s.annualized_cost,
+                }
+                for s in subs
+            ]
+
+        registry.register(ToolDefinition(
+            name="get_subscriptions",
+            description="Identify active software, entertainment, or utility subscriptions and annualized costs.",
+            handler=get_subscriptions,
+        ))
+
+        def get_spending_habits():
+            h = intelligence_service.get_spending_habits()
+            return {
+                "weekend_vs_weekday_ratio": h.weekend_vs_weekday_ratio,
+                "late_month_vs_early_month_ratio": h.late_month_vs_early_month_ratio,
+                "small_transaction_count": h.small_transaction_count,
+                "small_transaction_total": h.small_transaction_total,
+                "large_transaction_count": h.large_transaction_count,
+                "large_transaction_total": h.large_transaction_total,
+                "habits_summary": h.habits_summary,
+            }
+
+        registry.register(ToolDefinition(
+            name="get_spending_habits",
+            description="Retrieve behavioral spending habits (weekend bias, late-month surge, small impulses).",
+            handler=get_spending_habits,
+        ))
+
+        def get_category_forecasts():
+            return intelligence_service.get_category_forecasts()
+
+        registry.register(ToolDefinition(
+            name="get_category_forecasts",
+            description="Generate category-level forecasts for next month using machine learning.",
+            handler=get_category_forecasts,
+        ))
+
+        def get_spending_trends():
+            trends = intelligence_service.get_spending_trends()
+            return [
+                {
+                    "category": t.category,
+                    "direction": t.direction,
+                    "growth_rate": t.growth_rate,
+                    "is_accelerating": t.is_accelerating,
+                }
+                for t in trends
+            ]
+
+        registry.register(ToolDefinition(
+            name="get_spending_trends",
+            description="Identify category spending growth MoM and acceleration trends.",
+            handler=get_spending_trends,
+        ))
+
+        def run_spending_scenario(category: str, change_value: float, is_percentage: bool = True):
+            s = intelligence_service.run_scenario(category, change_value, is_percentage)
+            return {
+                "scenario_name": s.scenario_name,
+                "category": s.category,
+                "original_spending": s.original_spending,
+                "new_spending": s.new_spending,
+                "monthly_savings": s.monthly_savings,
+                "annualized_savings": s.annualized_savings,
+            }
+
+        registry.register(ToolDefinition(
+            name="run_spending_scenario",
+            description="Run a What-If math scenario simulating changes in spending.",
+            handler=run_spending_scenario,
+            parameters=[
+                ToolParameter(
+                    name="category",
+                    type="string",
+                    description="Category to modify.",
+                ),
+                ToolParameter(
+                    name="change_value",
+                    type="number",
+                    description="Change value (e.g. -15.0 for reduction, 5000.0 for increase).",
+                ),
+                ToolParameter(
+                    name="is_percentage",
+                    type="boolean",
+                    description="True if change_value is a percentage, False if absolute PKR amount.",
+                    required=False,
+                )
+            ]
+        ))
+
+        def get_advanced_insights():
+            insights = intelligence_service.get_insights()
+            return {"insights": insights.insights}
+
+        registry.register(ToolDefinition(
+            name="get_advanced_insights",
+            description="Get structured actionable financial insights and alarms derived from active calculations.",
+            handler=get_advanced_insights,
         ))
 
     return registry
