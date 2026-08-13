@@ -1,4 +1,8 @@
-from app.repositories.interface import ExpenseRepositoryInterface
-from app.repositories.sqlite_repository import SQLiteExpenseRepository
+"""
+Repositories Package.
+"""
+
+from app.repositories.base import ExpenseRepositoryInterface
+from app.repositories.expense_repository import SQLiteExpenseRepository
 
 __all__ = ["ExpenseRepositoryInterface", "SQLiteExpenseRepository"]

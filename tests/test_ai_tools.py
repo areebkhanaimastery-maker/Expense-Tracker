@@ -36,11 +36,8 @@ def test_execute_tool():
 
 def test_execute_unknown_tool():
     registry = ToolRegistry()
-    try:
-        registry.execute("nonexistent")
-        assert False, "Should have raised KeyError"
-    except KeyError:
-        pass
+    res = registry.execute("nonexistent")
+    assert "error" in res
 
 
 def test_execute_invalid_args():

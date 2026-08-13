@@ -4,7 +4,7 @@ from datetime import datetime
 
 @dataclass
 class Expense:
-    id: int
+    id: int | None
     amount: float
     category: str
     description: str
