@@ -35,7 +35,9 @@ class ConversationManager:
     ):
         self.llm = llm
         self.registry = registry
-        self.memory = memory or ConversationMemory()
+        self.memory = (
+            memory if memory is not None else ConversationMemory()
+        )
 
     def process_message(self, user_input: str) -> str:
         """
