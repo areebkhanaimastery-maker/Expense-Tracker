@@ -161,15 +161,75 @@ python scripts/generate_expenses.py --records 3500 --months 24
 
 ## AI Assistant Setup (Ollama)
 
-To interact with option `9. AI Expense Assistant`:
+To interact with option `10. Ask Expense AI`:
 1. Ensure [Ollama](https://ollama.com/) is installed and running:
    ```bash
    ollama serve
    ```
-2. Pull your model:
+2. Pull the configured default model:
    ```bash
-   ollama pull qwen3
+   ollama pull qwen2.5:3b
    ```
+
+---
+
+## Phase 6 — Advanced Expense Intelligence
+
+Phase 6 introduces a deterministic intelligence and behavior analysis layer underneath the AI Assistant and the CLI interface:
+
+```text
+                    SQLite
+                       │
+                       ▼
+                 Repository
+                       │
+                       ▼
+                  Services
+                       │
+                       ▼
+              Intelligence Engine
+                       │
+       ┌───────────────┼────────────────┐
+       ▼               ▼                ▼
+    Profile         Budget           Habits
+       │               │                │
+       ▼               ▼                ▼
+  Recurring       Forecasting        Trends
+       │               │                │
+       ▼               ▼                ▼
+Subscriptions    Category ML       Scenarios
+       │               │                │
+       └───────────────┼────────────────┘
+                       ▼
+                 Insight Engine
+                       │
+                       ▼
+                   AI Tools
+                       │
+                       ▼
+                   Local LLM
+                       │
+                       ▼
+                     User
+```
+
+### Core Analyzers & Algorithms
+1. **Personal Spending Profile**: Detailed metrics including means, medians, transaction sizes, weekend/weekday ratios, monthly volatility classification, and transaction frequencies.
+2. **Automatic Budget Detection & Recommendations**: Recommended spending limits derived from standard deviation envelopes and recent trend directions, coupled with EOM projection velocity analysis.
+3. **Recurring Expense Detection**: Pattern identifier grouping transactions by description cleaning, amount consistency tolerances, and frequency intervals (weekly, biweekly, monthly, quarterly, yearly).
+4. **Subscription Detection**: Specialized digital service and utility filter assessing annualized expenditures and next payment predictions.
+5. **Behavioral Habits Analysis**: Identifies weekend skews, late-month surges, and frequent micro-transaction accumulations without judgmental profiling.
+6. **MoM Trend Engine**: Regression-based category growth rate calculation highlighting accelerating categories.
+7. **Category Forecasting**: Extends the time-series forecasting pipeline using auto-regressive `HistGradientBoosting` models fitted to category aggregated daily spending.
+8. **What-If Scenario Engine**: Simulates potential savings and behavioral changes relative to active historical periods.
+9. **Structured Insights Engine**: Consolidates statistics, anomalies, budgets, and trend acceleration into clean, actionable alarms.
+
+### Data Requirements & Thresholds
+- **Spending Profile**: Requires $\ge 10$ transactions.
+- **Budget Recommendations**: Requires $\ge 1$ baseline historical period.
+- **Recurring & Subscription Detection**: Requires $\ge 3$ transactions spanning multiple months.
+- **Category Forecasting**: Requires $\ge 30$ historical observations.
+- **Trends Engine**: Requires $\ge 3$ active monthly periods.
 
 ---
 
@@ -179,3 +239,4 @@ To interact with option `9. AI Expense Assistant`:
 - **Read-Only AI Boundary**: AI tools delegate strictly to application services; write operations are disallowed.
 - **Secret Protection**: Log output uses a custom redacting formatter to mask tokens/secrets.
 - **Trusted Model Sources**: Local ML models are serialized with `joblib`. Ensure model artifacts originate from trusted builds.
+
