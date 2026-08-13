@@ -18,15 +18,20 @@ class ExpenseService:
         self,
         amount: float,
         category: str,
-        description: str
+        description: str,
+        date_str: str | datetime | None = None,
+        date: str | datetime | None = None,
     ) -> Expense:
+        from app.utils.dates import parse_datetime
+        dt_val = date_str or date
+        parsed_dt = parse_datetime(dt_val) if dt_val else datetime.now()
 
         expense = Expense(
             id=0,
             amount=amount,
             category=category,
             description=description,
-            date=datetime.now()
+            date=parsed_dt
         )
 
         expense.id = self.repository.add(expense)
@@ -56,17 +61,26 @@ class ExpenseService:
 
     def edit_expense(
         self,
-        expense_id,
-        amount,
-        category,
-        description
+        expense_id: int,
+        amount: float | None = None,
+        category: str | None = None,
+        description: str | None = None,
+        date_str: str | datetime | None = None,
+        date: str | datetime | None = None,
     ):
 
         expense = self.get_expense(expense_id)
 
-        expense.amount = amount
-        expense.category = category
-        expense.description = description
+        if amount is not None:
+            expense.amount = amount
+        if category is not None:
+            expense.category = category
+        if description is not None:
+            expense.description = description
+        dt_val = date_str or date
+        if dt_val is not None:
+            from app.utils.dates import parse_datetime
+            expense.date = parse_datetime(dt_val)
 
         self.repository.update(expense)
 
