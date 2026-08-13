@@ -1,29 +1,43 @@
-"""
-Dataset loading and splitting for the ML pipeline.
-"""
-from typing import List, Tuple
-from app.models.expense import Expense
+import sys
+from pathlib import Path
+
+# Add project root directory to PYTHONPATH if run directly
+root_dir = Path(__file__).resolve().parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+
+import pandas as pd
+from app.repositories.sqlite_repository import (
+    SQLiteExpenseRepository
+)
 
 
-def load_dataset(repository) -> List[Expense]:
-    """Retrieve all expenses from the repository."""
-    return repository.get_all()
+def load_expenses() -> pd.DataFrame:
+    repository = SQLiteExpenseRepository()
+
+    expenses = repository.get_all()
+
+    records = [
+        {
+            "id": expense.id,
+            "amount": expense.amount,
+            "category": expense.category,
+            "description": expense.description,
+            "date": expense.date,
+        }
+        for expense in expenses
+    ]
+
+    dataframe = pd.DataFrame(records)
+
+    if dataframe.empty:
+        raise ValueError(
+            "No expense data available for ML."
+        )
+
+    return dataframe
 
 
-def train_test_split_dataset(
-    expenses: List[Expense], 
-    test_size: float = 0.2
-) -> Tuple[List[Expense], List[Expense]]:
-    """
-    Split a list of expenses into training and testing sets.
-    
-    Preserves chronological order (time-based split) for time-series forecasting
-    and spending prediction.
-    """
-    if not expenses:
-        return [], []
-        
-    split_index = int(len(expenses) * (1 - test_size))
-    # Ensure they are sorted chronologically
-    sorted_expenses = sorted(expenses, key=lambda e: e.date)
-    return sorted_expenses[:split_index], sorted_expenses[split_index:]
+if __name__ == "__main__":
+    df = load_expenses()
+    print(df.head())
