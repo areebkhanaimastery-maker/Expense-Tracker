@@ -23,6 +23,7 @@ from app.repositories.expense_repository import SQLiteExpenseRepository
 from app.services.analytics_service import AnalyticsService
 from app.services.anomaly_service import AnomalyService
 from app.services.expense_service import ExpenseService
+from app.services.intelligence_service import IntelligenceService
 from app.services.prediction_service import PredictionService
 
 
@@ -38,6 +39,9 @@ def test_ai_system():
     analytics_service = AnalyticsService(repository)
     anomaly_service = AnomalyService(repository)
     prediction_service = PredictionService(repository)
+    intelligence_service = IntelligenceService(
+        repository, anomaly_service=anomaly_service
+    )
 
     # 2. Build Tool Registry and AI Manager
     registry = build_tool_registry(
@@ -45,6 +49,7 @@ def test_ai_system():
         analytics_service=analytics_service,
         anomaly_service=anomaly_service,
         prediction_service=prediction_service,
+        intelligence_service=intelligence_service,
     )
     llm = OllamaProvider(model=settings.llm_model)
     memory = ConversationMemory(max_messages=50)
@@ -59,6 +64,12 @@ def test_ai_system():
         "Did I have any unusual expenses?",
         "How much am I likely to spend next month?",
         "Give me a complete spending summary.",
+        "What does my spending profile look like?",
+        "What should my Food budget be?",
+        "Which expenses are recurring?",
+        "What subscriptions am I paying for?",
+        "What if I reduce Shopping spending by 20%?",
+        "Give me a complete financial spending analysis.",
     ]
 
     passed = 0

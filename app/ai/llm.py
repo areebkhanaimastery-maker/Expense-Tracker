@@ -90,6 +90,59 @@ class SmartToolFallbackEngine:
 
     @staticmethod
     def _match_intent(user_input: str) -> dict[str, Any] | None:
+        # Advanced Intelligence Intent Matches
+        if "profile" in user_input:
+            return {"function": {"name": "get_spending_profile", "arguments": {}}}
+
+        if "budget" in user_input:
+            return {"function": {"name": "get_budget_status", "arguments": {}}}
+
+        if "recurring" in user_input:
+            return {"function": {"name": "get_recurring_expenses", "arguments": {}}}
+
+        if "subscription" in user_input:
+            return {"function": {"name": "get_subscriptions", "arguments": {}}}
+
+        if "habit" in user_input:
+            return {"function": {"name": "get_spending_habits", "arguments": {}}}
+
+        if "category forecast" in user_input:
+            return {"function": {"name": "get_category_forecasts", "arguments": {}}}
+
+        if "trend" in user_input:
+            return {"function": {"name": "get_spending_trends", "arguments": {}}}
+
+        if "what if" in user_input or "reduce" in user_input or "increase" in user_input:
+            import re
+            # Extract category name (valid list: Food, Transport, Shopping, Bills, Entertainment, Health, Education, Other)
+            categories = ["food", "transport", "shopping", "bills", "entertainment", "health", "education", "other"]
+            cat_match = next((c for c in categories if c in user_input), "Shopping")
+            
+            # Extract change number (e.g. 20% or 5000)
+            nums = re.findall(r"\d+", user_input)
+            val = float(nums[0]) if nums else 10.0
+            
+            # Direction
+            direction = -1.0 if "reduce" in user_input or "save" in user_input or "cut" in user_input or "decrease" in user_input else 1.0
+            
+            # Check if percentage
+            is_pct = "%" in user_input or "percent" in user_input or val < 100.0
+            
+            return {
+                "function": {
+                    "name": "run_spending_scenario",
+                    "arguments": {
+                        "category": cat_match.capitalize(),
+                        "change_value": val * direction,
+                        "is_percentage": is_pct
+                    }
+                }
+            }
+
+        if "analysis" in user_input or "insights" in user_input or "insight" in user_input:
+            return {"function": {"name": "get_advanced_insights", "arguments": {}}}
+
+        # Baseline Analytics Intent Matches
         if "compare" in user_input or ("last month" in user_input and "this month" in user_input):
             return {"function": {"name": "compare_months", "arguments": {}}}
 
