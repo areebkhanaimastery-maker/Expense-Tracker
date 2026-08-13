@@ -99,6 +99,42 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Generating Synthetic ML Dataset
+
+The repository includes a synthetic expense generator to populate the SQLite database with realistic historical transactions for machine learning training and anomaly detection testing.
+
+The generator simulates:
+- Realistic PKR amount distributions skewed towards smaller transactions.
+- Weekday vs. weekend spending distributions (higher transport on weekdays, higher dining/entertainment on weekends).
+- Inflation/growth patterns (e.g. food spending gradually increasing over time).
+- Seasonal spikes (e.g. higher shopping frequency and amounts in November and December).
+- Regular monthly bills (Electricity, Internet, Sui Gas) occurring in the first week of every calendar month.
+- Occasional large education tuition fees occurring once every 6 months.
+- Legitimate rare outliers (e.g. flagship smartphone purchases, surgery fees).
+
+To run the generator with default settings (3,500 records over 24 months):
+
+```bash
+python scripts/generate_expenses.py
+```
+
+### Configurable Options
+
+You can customize the number of generated records, historical date range, seed, or database path using CLI arguments:
+
+- `--records`: Total target records to generate (default: `3500`).
+- `--months`: Span of historical data in months (default: `24`).
+- `--seed`: Seed for reproducibility (default: `42`).
+- `--db-path`: Custom SQLite database path (defaults to settings).
+
+For example, to generate 2,000 records over 12 months with a custom seed:
+
+```bash
+python scripts/generate_expenses.py --records 2000 --months 12 --seed 101
+```
+
+The script is **idempotent**. If you run it multiple times with the same parameters and seed, it will check the database and skip records that have already been generated, preventing duplicates.
+
 ## Running Tests
 
 ```bash
